@@ -1,9 +1,8 @@
 import { Suspense } from 'react';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { getMangaById } from '@/lib/anilist';
+import { getMangaById } from '@/lib/mal';
 import { getMangaDexManga, getMangaChapters, searchMangaDex } from '@/lib/mangadex';
-import { isUUID, stripHtml, proxyImageUrl } from '@/lib/utils';
+import { isUUID, stripHtml } from '@/lib/utils';
 import { Manga, Chapter } from '@/lib/types';
 import { ChapterList } from '@/components/ChapterList';
 import { BookmarkButton } from '@/components/BookmarkButton';
@@ -28,13 +27,13 @@ async function fetchMangaData(
     return { manga, chapters: chapData.chapters, mangadexId: id };
   }
 
-  // AniList source
-  const anilistId = parseInt(id);
-  if (isNaN(anilistId)) notFound();
+  // MAL source
+  const malId = parseInt(id);
+  if (isNaN(malId)) notFound();
 
-  const manga = await getMangaById(anilistId);
+  const manga = await getMangaById(malId);
 
-  // Search MangaDex for chapters
+  // Search MangaDex for chapters by title
   let chapters: Chapter[] = [];
   let mangadexId = '';
   try {
@@ -61,20 +60,16 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
 
   const { manga, chapters, mangadexId } = data;
   const description = manga.description ? stripHtml(manga.description) : '';
-  const coverSrc =
-    manga.source === 'mangadex' ? proxyImageUrl(manga.coverImage) : manga.coverImage;
 
   return (
     <div>
       {/* Banner */}
       <div className="relative h-64 sm:h-80 overflow-hidden">
         {manga.bannerImage ? (
-          <Image
+          <img
             src={manga.bannerImage}
             alt=""
-            fill
-            className="object-cover"
-            priority
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/20 to-accent-pink/20" />
@@ -88,14 +83,11 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
           {/* Cover */}
           <div className="flex-shrink-0 w-40 sm:w-52">
             <div className="aspect-[3/4] relative rounded-xl overflow-hidden border-2 border-border-subtle shadow-2xl">
-              {coverSrc ? (
-                <Image
-                  src={coverSrc}
+              {manga.coverImage ? (
+                <img
+                  src={manga.coverImage}
                   alt={manga.title}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="208px"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-bg-card flex items-center justify-center text-text-muted">
@@ -123,13 +115,7 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
               {manga.status && (
                 <div className="flex items-center gap-1.5 text-accent-teal text-sm">
                   <BookOpen size={16} />
-                  <span>
-                    {manga.status === 'RELEASING' || manga.status === 'ongoing'
-                      ? 'Ongoing'
-                      : manga.status === 'FINISHED' || manga.status === 'completed'
-                        ? 'Completed'
-                        : manga.status}
-                  </span>
+                  <span>{manga.status}</span>
                 </div>
               )}
               {manga.year && (

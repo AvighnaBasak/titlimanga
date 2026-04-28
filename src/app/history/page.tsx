@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Clock, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ReadingHistoryEntry } from '@/lib/types';
 import { getReadingHistory } from '@/lib/storage';
-import { proxyImageUrl } from '@/lib/utils';
 import { SectionHeader } from '@/components/SectionHeader';
 
 export default function HistoryPage() {
@@ -63,48 +61,39 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {history.map((entry, i) => {
-            const imgSrc = entry.coverImage
-              ? entry.source === 'mangadex'
-                ? proxyImageUrl(entry.coverImage)
-                : entry.coverImage
-              : '';
-
-            return (
-              <Link
-                key={`${entry.chapterId}-${i}`}
-                href={`/read/${entry.chapterId}?manga=${entry.mangaId}`}
-                className="flex items-center gap-4 p-3 bg-bg-card border border-border-subtle rounded-xl hover:bg-bg-card-hover hover:border-accent-purple/30 transition-all group"
-              >
-                <div className="relative w-12 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-bg-surface">
-                  {imgSrc ? (
-                    <Image
-                      src={imgSrc}
-                      alt={entry.mangaTitle}
-                      fill
-                      sizes="48px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-text-muted text-xs">
-                      ?
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-text-primary truncate group-hover:text-accent-purple transition-colors">
-                    {entry.mangaTitle}
-                  </h3>
-                  <p className="text-xs text-text-muted mt-0.5">
-                    Chapter {entry.chapterNumber}
-                  </p>
-                </div>
-                <span className="text-xs text-text-muted flex-shrink-0">
-                  {timeAgo(entry.timestamp)}
-                </span>
-              </Link>
-            );
-          })}
+          {history.map((entry, i) => (
+            <Link
+              key={`${entry.chapterId}-${i}`}
+              href={`/read/${entry.chapterId}?manga=${entry.mangaId}`}
+              className="flex items-center gap-4 p-3 bg-bg-card border border-border-subtle rounded-xl hover:bg-bg-card-hover hover:border-accent-purple/30 transition-all group"
+            >
+              <div className="w-12 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-bg-surface">
+                {entry.coverImage ? (
+                  <img
+                    src={entry.coverImage}
+                    alt={entry.mangaTitle}
+                    loading="lazy"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-text-muted text-xs">
+                    ?
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-medium text-text-primary truncate group-hover:text-accent-purple transition-colors">
+                  {entry.mangaTitle}
+                </h3>
+                <p className="text-xs text-text-muted mt-0.5">
+                  Chapter {entry.chapterNumber}
+                </p>
+              </div>
+              <span className="text-xs text-text-muted flex-shrink-0">
+                {timeAgo(entry.timestamp)}
+              </span>
+            </Link>
+          ))}
         </div>
       )}
     </div>

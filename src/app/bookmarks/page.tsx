@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react';
 import { BookMarked, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Bookmark } from '@/lib/types';
 import { getBookmarks, removeBookmark } from '@/lib/storage';
-import { proxyImageUrl, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { SectionHeader } from '@/components/SectionHeader';
 
 export default function BookmarksPage() {
@@ -43,23 +42,20 @@ export default function BookmarksPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
           {bookmarks.map((bm) => {
             const href =
-              bm.source === 'anilist'
+              bm.source === 'mal'
                 ? `/manga/${bm.mangaId}`
                 : `/manga/${bm.mangaId}?source=md`;
-            const imgSrc =
-              bm.source === 'mangadex' ? proxyImageUrl(bm.coverImage) : bm.coverImage;
 
             return (
               <div key={bm.mangaId} className="group relative">
                 <Link href={href} className="block manga-card-hover">
                   <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-bg-card border border-border-subtle">
-                    {imgSrc ? (
-                      <Image
-                        src={imgSrc}
+                    {bm.coverImage ? (
+                      <img
+                        src={bm.coverImage}
                         alt={bm.title}
-                        fill
-                        sizes="(max-width: 640px) 45vw, 200px"
-                        className="object-cover"
+                        loading="lazy"
+                        className="absolute inset-0 w-full h-full object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">

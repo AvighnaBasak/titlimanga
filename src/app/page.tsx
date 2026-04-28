@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { getTrendingManga, getPopularManga } from '@/lib/anilist';
+import { getTrendingManga, getPopularManga } from '@/lib/mal';
 import { getLatestUpdates } from '@/lib/mangadex';
 import { HeroSection } from '@/components/HeroSection';
 import { MangaGrid, MangaGridSkeleton } from '@/components/MangaGrid';
@@ -7,7 +7,7 @@ import { SectionHeader } from '@/components/SectionHeader';
 
 async function TrendingSection() {
   try {
-    const manga = await getTrendingManga(1, 12);
+    const manga = await getTrendingManga(12);
     return <MangaGrid manga={manga} />;
   } catch {
     return <p className="text-text-muted text-center py-8">Failed to load trending manga.</p>;
@@ -16,7 +16,7 @@ async function TrendingSection() {
 
 async function PopularSection() {
   try {
-    const manga = await getPopularManga(1, 12);
+    const manga = await getPopularManga(12);
     return <MangaGrid manga={manga} />;
   } catch {
     return <p className="text-text-muted text-center py-8">Failed to load popular manga.</p>;
@@ -26,7 +26,7 @@ async function PopularSection() {
 async function LatestSection() {
   try {
     const manga = await getLatestUpdates(18);
-    return <MangaGrid manga={manga} priorityCount={0} />;
+    return <MangaGrid manga={manga} />;
   } catch {
     return <p className="text-text-muted text-center py-8">Failed to load latest updates.</p>;
   }

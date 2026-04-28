@@ -1,33 +1,25 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { Manga } from '@/lib/types';
-import { cn, truncate, proxyImageUrl } from '@/lib/utils';
+import { cn, truncate } from '@/lib/utils';
 
 interface MangaCardProps {
   manga: Manga;
-  priority?: boolean;
   showScore?: boolean;
 }
 
-export function MangaCard({ manga, priority = false, showScore = true }: MangaCardProps) {
-  const href = manga.source === 'anilist' ? `/manga/${manga.id}` : `/manga/${manga.id}?source=md`;
-  const imgSrc =
-    manga.source === 'mangadex' && manga.coverImage
-      ? proxyImageUrl(manga.coverImage)
-      : manga.coverImage;
+export function MangaCard({ manga, showScore = true }: MangaCardProps) {
+  const href = manga.source === 'mal' ? `/manga/${manga.id}` : `/manga/${manga.id}?source=md`;
 
   return (
     <Link href={href} className="group block manga-card-hover">
       <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-bg-card border border-border-subtle">
-        {imgSrc ? (
-          <Image
-            src={imgSrc}
+        {manga.coverImage ? (
+          <img
+            src={manga.coverImage}
             alt={manga.title}
-            fill
-            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 200px"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            priority={priority}
+            loading="lazy"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-text-muted text-sm">
@@ -35,10 +27,8 @@ export function MangaCard({ manga, priority = false, showScore = true }: MangaCa
           </div>
         )}
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Score badge */}
         {showScore && manga.score && (
           <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 rounded-full px-2 py-0.5 text-xs">
             <Star size={12} className="text-yellow-400 fill-yellow-400" />
@@ -46,23 +36,18 @@ export function MangaCard({ manga, priority = false, showScore = true }: MangaCa
           </div>
         )}
 
-        {/* Status badge */}
         {manga.status && (
           <div
             className={cn(
               'absolute top-2 left-2 rounded-full px-2 py-0.5 text-xs font-medium',
-              manga.status === 'RELEASING' || manga.status === 'ongoing'
+              manga.status === 'Ongoing'
                 ? 'bg-accent-teal/80 text-white'
-                : manga.status === 'FINISHED' || manga.status === 'completed'
+                : manga.status === 'Completed'
                   ? 'bg-accent-purple/80 text-white'
                   : 'bg-bg-card/80 text-text-secondary',
             )}
           >
-            {manga.status === 'RELEASING' || manga.status === 'ongoing'
-              ? 'Ongoing'
-              : manga.status === 'FINISHED' || manga.status === 'completed'
-                ? 'Completed'
-                : manga.status}
+            {manga.status}
           </div>
         )}
       </div>

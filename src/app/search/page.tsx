@@ -27,11 +27,10 @@ function SearchContent() {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
 
-      const anilistManga: Manga[] = data.anilist || [];
+      const malManga: Manga[] = data.mal || [];
       const mdResults: MangaDexSearchResult[] = data.mangadex || [];
 
-      // Merge, prioritizing AniList results
-      const seen = new Set(anilistManga.map((m: Manga) => m.title.toLowerCase()));
+      const seen = new Set(malManga.map((m: Manga) => m.title.toLowerCase()));
       const mdManga: Manga[] = mdResults
         .filter((m: MangaDexSearchResult) => !seen.has(m.title.toLowerCase()))
         .map((m: MangaDexSearchResult) => ({
@@ -44,7 +43,7 @@ function SearchContent() {
           description: '',
         }));
 
-      setResults([...anilistManga, ...mdManga]);
+      setResults([...malManga, ...mdManga]);
     } catch {
       setResults([]);
     } finally {
