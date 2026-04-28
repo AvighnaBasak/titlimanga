@@ -4,7 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowUp, Loader2 } from 'lucide-react';
 import { ChapterPage } from '@/lib/types';
-import { proxyImageUrl, cn } from '@/lib/utils';
+import { proxyImageUrl, cn, isUUID } from '@/lib/utils';
+
 import { addToReadingHistory } from '@/lib/storage';
 
 interface ReaderProps {
@@ -59,6 +60,7 @@ export function Reader({
     fetchPages();
 
     if (mangaId && mangaTitle && chapterNumber) {
+      const source = isUUID(mangaId) ? 'mangadex' : 'mal';
       addToReadingHistory({
         mangaId,
         mangaTitle,
@@ -66,7 +68,7 @@ export function Reader({
         chapterNumber,
         coverImage: coverImage || '',
         timestamp: Date.now(),
-        source: 'mangadex',
+        source,
       });
     }
 
@@ -173,7 +175,13 @@ export function Reader({
           <div className="text-center">
             {mangaTitle && (
               <Link
-                href={mangaId ? `/manga/${mangaId}?source=md` : '#'}
+                href={
+                  mangaId
+                    ? isUUID(mangaId)
+                      ? `/manga/${mangaId}?source=md`
+                      : `/manga/${mangaId}`
+                    : '#'
+                }
                 className="text-xs text-text-muted hover:text-accent-purple transition-colors block"
               >
                 {mangaTitle}
@@ -250,7 +258,13 @@ export function Reader({
           </Link>
         ) : (
           <Link
-            href={mangaId ? `/manga/${mangaId}?source=md` : '/'}
+            href={
+              mangaId
+                ? isUUID(mangaId)
+                  ? `/manga/${mangaId}?source=md`
+                  : `/manga/${mangaId}`
+                : '/'
+            }
             className="flex items-center gap-2 px-4 py-2 bg-bg-card border border-border-subtle rounded-lg text-sm text-text-secondary hover:text-accent-purple transition-all"
           >
             Back to Manga

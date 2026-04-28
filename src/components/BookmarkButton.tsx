@@ -9,7 +9,8 @@ interface BookmarkButtonProps {
   mangaId: string;
   title: string;
   coverImage: string;
-  source: 'mal' | 'mangadex' | 'anilist';
+  source: 'mal' | 'mangadex';
+
 
   className?: string;
 }

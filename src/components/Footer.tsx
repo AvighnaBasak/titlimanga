@@ -11,17 +11,17 @@ export function Footer() {
           </div>
 
           <p className="text-text-muted text-xs text-center">
-            Powered by AniList & MangaDex. Images are not hosted on this site.
+            Powered by MyAnimeList & MangaDex. Images are not hosted on this site.
           </p>
 
           <div className="flex gap-4 text-text-muted text-xs">
             <a
-              href="https://anilist.co"
+              href="https://myanimelist.net"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-accent-purple transition-colors"
             >
-              AniList
+              MyAnimeList
             </a>
             <a
               href="https://mangadex.org"
