@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'mangadex.org' },
       { protocol: 'https', hostname: 'cmdxd98sb0x3yprd.mangadex.network' },
     ],
+    localPatterns: [
+      {
+        pathname: '/api/proxy',
+        search: '?url=**',
+      },
+    ],
   },
 };
 
