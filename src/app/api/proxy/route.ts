@@ -6,7 +6,9 @@ const ALLOWED_HOSTS = [
   'cmdxd98sb0x3yprd.mangadex.network',
   's4.anilist.co',
   'img.anili.st',
+  'cdn.myanimelist.net',
 ];
+
 
 function isAllowedUrl(url: string): boolean {
   try {

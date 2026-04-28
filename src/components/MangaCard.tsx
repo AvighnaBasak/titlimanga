@@ -6,9 +6,10 @@ import { cn, truncate } from '@/lib/utils';
 interface MangaCardProps {
   manga: Manga;
   showScore?: boolean;
+  priority?: boolean;
 }
 
-export function MangaCard({ manga, showScore = true }: MangaCardProps) {
+export function MangaCard({ manga, showScore = true, priority = false }: MangaCardProps) {
   const href = manga.source === 'mal' ? `/manga/${manga.id}` : `/manga/${manga.id}?source=md`;
 
   return (
@@ -18,7 +19,8 @@ export function MangaCard({ manga, showScore = true }: MangaCardProps) {
           <img
             src={manga.coverImage}
             alt={manga.title}
-            loading="lazy"
+            loading={priority ? 'eager' : 'lazy'}
+            decoding={priority ? 'sync' : 'async'}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (

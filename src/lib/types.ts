@@ -11,7 +11,7 @@ export interface Manga {
   score?: number;
   chapters?: number;
   year?: number;
-  source: 'mal' | 'mangadex';
+  source: 'mal' | 'mangadex' | 'anilist';
 }
 
 export interface Chapter {
@@ -39,7 +39,7 @@ export interface ReadingHistoryEntry {
   chapterNumber: string;
   coverImage: string;
   timestamp: number;
-  source: 'mal' | 'mangadex';
+  source: 'mal' | 'mangadex' | 'anilist';
 }
 
 export interface Bookmark {
@@ -47,7 +47,7 @@ export interface Bookmark {
   title: string;
   coverImage: string;
   addedAt: number;
-  source: 'mal' | 'mangadex';
+  source: 'mal' | 'mangadex' | 'anilist';
 }
 
 export interface MangaDexSearchResult {
