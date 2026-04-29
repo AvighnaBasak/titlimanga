@@ -155,6 +155,58 @@ export function Reader({
     );
   }
 
+  if (!loading && pages.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-32 gap-6">
+        <div className="text-center">
+          <p className="text-text-primary text-lg font-medium mb-2">
+            This chapter is not available for reading
+          </p>
+          <p className="text-text-muted text-sm max-w-md">
+            This chapter may be hosted on an external platform (like MangaPlus) and cannot be read
+            directly. Check the manga page for external links.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <a
+            href={`https://mangadex.org/chapter/${chapterId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 bg-accent-purple rounded-lg text-white text-sm hover:bg-accent-violet transition-colors"
+          >
+            View on MangaDex
+          </a>
+          {mangaId && (
+            <Link
+              href={isUUID(mangaId) ? `/manga/${mangaId}?source=md` : `/manga/${mangaId}`}
+              className="px-4 py-2 bg-bg-card border border-border-subtle rounded-lg text-sm text-text-secondary hover:text-accent-purple transition-all"
+            >
+              Back to Manga
+            </Link>
+          )}
+        </div>
+        <div className="flex gap-3 mt-2">
+          {prevChapterId && (
+            <Link
+              href={`/read/${prevChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+              className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
+            >
+              &larr; Previous Chapter
+            </Link>
+          )}
+          {nextChapterId && (
+            <Link
+              href={`/read/${nextChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+              className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
+            >
+              Next Chapter &rarr;
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative">
       {/* Top navigation */}

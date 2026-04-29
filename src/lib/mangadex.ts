@@ -204,6 +204,30 @@ export async function getLatestUpdates(limit = 20): Promise<Manga[]> {
   });
 }
 
+// --- Latest updates with MAL covers ---
+
+export async function getLatestUpdatesWithMALCovers(limit = 20): Promise<Manga[]> {
+  const mdManga = await getLatestUpdates(limit);
+
+  const { searchMangaMAL } = await import('./mal');
+
+  const withCovers = await Promise.all(
+    mdManga.map(async (manga) => {
+      try {
+        const results = await searchMangaMAL(manga.title, 1);
+        if (results.length > 0 && results[0].coverImage) {
+          return { ...manga, coverImage: results[0].coverImage };
+        }
+      } catch {
+        // MAL search failed, keep MangaDex cover
+      }
+      return manga;
+    }),
+  );
+
+  return withCovers;
+}
+
 // --- Chapters (with full pagination + dedup) ---
 
 async function fetchAllChapters(
@@ -243,6 +267,7 @@ async function fetchAllChapters(
         translatedLanguage: (attrs.translatedLanguage as string) || lang,
         publishAt: (attrs.publishAt as string) || '',
         scanlationGroup: groupName,
+        externalUrl: (attrs.externalUrl as string) || undefined,
       });
     }
 
@@ -264,11 +289,20 @@ function deduplicateChapters(chapters: Chapter[]): Chapter[] {
 
   const deduped: Chapter[] = [];
   for (const [, group] of grouped) {
-    group.sort((a, b) => {
-      if (b.pages !== a.pages) return b.pages - a.pages;
-      return new Date(b.publishAt).getTime() - new Date(a.publishAt).getTime();
-    });
-    deduped.push(group[0]);
+    // Prefer readable chapters (pages > 0) over external-only ones
+    const readable = group.filter((ch) => ch.pages > 0);
+    const external = group.filter((ch) => ch.pages === 0 && ch.externalUrl);
+
+    if (readable.length > 0) {
+      readable.sort((a, b) => {
+        if (b.pages !== a.pages) return b.pages - a.pages;
+        return new Date(b.publishAt).getTime() - new Date(a.publishAt).getTime();
+      });
+      deduped.push(readable[0]);
+    } else if (external.length > 0) {
+      deduped.push(external[0]);
+    }
+    // Skip chapters with 0 pages and no external URL — they're unreadable
   }
 
   deduped.sort((a, b) => parseFloat(a.chapter) - parseFloat(b.chapter));

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { getTrendingManga, getPopularManga } from '@/lib/mal';
-import { getLatestUpdates } from '@/lib/mangadex';
+import { getLatestUpdatesWithMALCovers } from '@/lib/mangadex';
 import { HeroSection } from '@/components/HeroSection';
 import { MangaGrid, MangaGridSkeleton } from '@/components/MangaGrid';
 import { SectionHeader } from '@/components/SectionHeader';
@@ -25,7 +25,7 @@ async function PopularSection() {
 
 async function LatestSection() {
   try {
-    const manga = await getLatestUpdates(18);
+    const manga = await getLatestUpdatesWithMALCovers(18);
     return <MangaGrid manga={manga} />;
   } catch {
     return <p className="text-text-muted text-center py-8">Failed to load latest updates.</p>;

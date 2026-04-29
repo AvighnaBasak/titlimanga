@@ -151,15 +151,35 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
                 coverImage={manga.coverImage}
                 source={manga.source}
               />
-              {chapters.length > 0 && (
-                <a
-                  href={`/read/${chapters[0].id}?manga=${mangadexId || id}`}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-purple to-accent-pink rounded-lg text-sm text-white font-medium hover:opacity-90 transition-opacity"
-                >
-                  <BookOpen size={18} />
-                  Start Reading
-                </a>
-              )}
+              {(() => {
+                const firstReadable = chapters.find((ch) => ch.pages > 0);
+                if (firstReadable) {
+                  return (
+                    <a
+                      href={`/read/${firstReadable.id}?manga=${mangadexId || id}`}
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-purple to-accent-pink rounded-lg text-sm text-white font-medium hover:opacity-90 transition-opacity"
+                    >
+                      <BookOpen size={18} />
+                      Start Reading
+                    </a>
+                  );
+                }
+                const firstExternal = chapters.find((ch) => ch.externalUrl);
+                if (firstExternal) {
+                  return (
+                    <a
+                      href={firstExternal.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-purple to-accent-pink rounded-lg text-sm text-white font-medium hover:opacity-90 transition-opacity"
+                    >
+                      <BookOpen size={18} />
+                      Read on Official Site
+                    </a>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {description && (

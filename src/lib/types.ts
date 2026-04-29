@@ -23,6 +23,7 @@ export interface Chapter {
   translatedLanguage: string;
   publishAt: string;
   scanlationGroup?: string;
+  externalUrl?: string;
 }
 
 export interface ChapterPage {
