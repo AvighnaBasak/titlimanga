@@ -44,9 +44,9 @@ export function HeroSection({ featuredManga }: HeroSectionProps) {
         <h2 className="text-white text-lg title-aggressive mb-4 text-[#8a8b8f]">Trending Now</h2>
 
         {featuredManga.genres && featuredManga.genres.length > 0 && (
-          <div className="flex gap-2 mb-6">
+          <div className="flex flex-wrap gap-1.5 md:gap-2 mb-6">
             {featuredManga.genres.slice(0, 4).map((g) => (
-              <span key={g} className="px-3 py-1 bg-[#16171d]/80 border border-[#2c2d33] rounded text-[11px] font-bold text-[#e2e8f0] uppercase tracking-wider">
+              <span key={g} className="px-2 py-1 md:px-3 md:py-1 bg-[#16171d]/80 border border-[#2c2d33] rounded text-[9px] md:text-[11px] font-bold text-[#e2e8f0] uppercase tracking-wider">
                 {g}
               </span>
             ))}

@@ -76,38 +76,31 @@ export function Header() {
               })}
             </nav>
 
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 text-white/60 hover:text-white transition-colors"
-              aria-label="Menu"
-            >
-              {menuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+            <div className="flex items-center gap-2 md:hidden">
+              <Link href="/search" className="p-2 text-white/60 hover:text-white transition-colors" aria-label="Search">
+                <Search size={20} />
+              </Link>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-2 text-white/60 hover:text-white transition-colors"
+                aria-label="Menu"
+              >
+                {menuOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Mobile menu */}
         {menuOpen && (
-          <nav className="md:hidden pb-4 pt-2 bg-[#0b131f]/95 backdrop-blur-md rounded-b-lg absolute left-0 right-0 px-4 shadow-xl border-b border-white/10 z-50">
-            <form onSubmit={handleSearch} className="mb-4">
-              <div className="flex items-center bg-white/5 border border-white/10 rounded-md overflow-hidden">
-                <Search size={14} className="ml-3 text-white/40" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search..."
-                  className="w-full bg-transparent px-3 py-2 text-[13px] text-white focus:outline-none"
-                />
-              </div>
-            </form>
-            <div className="flex flex-col gap-2">
+          <nav className="md:hidden pb-6 pt-4 bg-[#0d0d0f] rounded-b-md absolute left-0 right-0 px-6 shadow-2xl border-b border-[#2c2d33] z-50">
+            <div className="flex flex-col gap-4">
               {NAV_LINKS.map(({ href, label }) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={() => setMenuOpen(false)}
-                  className="px-3 py-2 rounded-md text-[13px] font-medium text-white/70 hover:text-white hover:bg-white/5 transition-colors"
+                  className="text-lg title-aggressive text-white/80 hover:text-white transition-colors uppercase tracking-widest"
                 >
                   {label}
                 </Link>

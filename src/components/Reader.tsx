@@ -121,10 +121,27 @@ export function Reader({
     return () => observerRef.current?.disconnect();
   }, [pages, prefetchImage]);
 
-  // Show/hide scroll-to-top button
+  const [showNav, setShowNav] = useState(true);
+  const lastScrollY = useRef(0);
+
+  // Show/hide scroll-to-top button + Smart Nav Hiding
   useEffect(() => {
     function handleScroll() {
-      setShowTopButton(window.scrollY > 800);
+      const currentScrollY = window.scrollY;
+      
+      // Smart Nav logic
+      if (currentScrollY > 100) { // Only hide after some scrolling
+        if (currentScrollY > lastScrollY.current + 10) {
+          setShowNav(false); // Scrolling down
+        } else if (currentScrollY < lastScrollY.current - 10) {
+          setShowNav(true); // Scrolling up
+        }
+      } else {
+        setShowNav(true);
+      }
+      
+      lastScrollY.current = currentScrollY;
+      setShowTopButton(currentScrollY > 800);
     }
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -210,9 +227,12 @@ export function Reader({
 
   return (
     <div className="relative">
-      {/* Top navigation */}
-      <div className="glass sticky top-16 z-40 border-b border-border-subtle">
-        <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-2">
+      {/* Top navigation - Smart Hiding */}
+      <div className={cn(
+        "glass fixed top-0 left-0 right-0 z-50 border-b border-border-subtle transition-transform duration-300",
+        showNav ? "translate-y-0" : "-translate-y-full"
+      )}>
+        <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-3">
           {prevChapterId ? (
             <Link
               href={buildReadUrl(prevChapterId)}
