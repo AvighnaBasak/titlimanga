@@ -2,16 +2,17 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronUp, ChevronDown, BookOpen, ExternalLink, Search } from 'lucide-react';
+import { ChevronUp, ChevronDown, BookOpen, Search } from 'lucide-react';
 import { Chapter } from '@/lib/types';
-import { formatDate, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface ChapterListProps {
   chapters: Chapter[];
   mangaId: string;
+  mangaPillId: string;
 }
 
-export function ChapterList({ chapters, mangaId }: ChapterListProps) {
+export function ChapterList({ chapters, mangaId, mangaPillId }: ChapterListProps) {
   const [sortAsc, setSortAsc] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -23,8 +24,7 @@ export function ChapterList({ chapters, mangaId }: ChapterListProps) {
       filtered = filtered.filter(
         (ch) =>
           ch.chapter.includes(q) ||
-          ch.title?.toLowerCase().includes(q) ||
-          ch.scanlationGroup?.toLowerCase().includes(q),
+          ch.title?.toLowerCase().includes(q),
       );
     }
 
@@ -40,8 +40,8 @@ export function ChapterList({ chapters, mangaId }: ChapterListProps) {
     return (
       <div className="text-center py-12 text-text-muted">
         <BookOpen size={32} className="mx-auto mb-3 opacity-50" />
-        <p>No English chapters available on MangaDex.</p>
-        <p className="text-xs mt-2">Licensed manga may only be available on official platforms.</p>
+        <p>No chapters available.</p>
+        <p className="text-xs mt-2">This manga may not be available on our provider yet. Check back later.</p>
       </div>
     );
   }
@@ -86,68 +86,25 @@ export function ChapterList({ chapters, mangaId }: ChapterListProps) {
               No chapters match your search.
             </div>
           ) : (
-            sorted.map((ch) => {
-              const isExternal = !!ch.externalUrl;
-
-              if (isExternal) {
-                return (
-                  <a
-                    key={ch.id}
-                    href={ch.externalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={cn(
-                      'flex items-center justify-between px-4 py-3',
-                      'hover:bg-bg-card-hover transition-colors group',
+            sorted.map((ch) => (
+              <Link
+                key={ch.id}
+                href={`/read/${encodeURIComponent(ch.id)}?manga=${mangaId}&mpid=${encodeURIComponent(mangaPillId)}`}
+                className={cn(
+                  'flex items-center justify-between px-4 py-3',
+                  'hover:bg-bg-card-hover transition-colors group',
+                )}
+              >
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-text-primary group-hover:text-accent-purple transition-colors">
+                    Ch. {ch.chapter}
+                    {ch.title && (
+                      <span className="text-text-muted ml-2">— {ch.title}</span>
                     )}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm text-text-primary group-hover:text-accent-purple transition-colors">
-                        Ch. {ch.chapter}
-                        {ch.title && (
-                          <span className="text-text-muted ml-2">— {ch.title}</span>
-                        )}
-                      </span>
-                      <p className="text-xs text-text-muted mt-0.5 truncate flex items-center gap-1">
-                        <ExternalLink size={10} />
-                        {ch.scanlationGroup || 'Official'} (external)
-                      </p>
-                    </div>
-                    <span className="text-xs text-text-muted ml-4 flex-shrink-0">
-                      {ch.publishAt ? formatDate(ch.publishAt) : ''}
-                    </span>
-                  </a>
-                );
-              }
-
-              return (
-                <Link
-                  key={ch.id}
-                  href={`/read/${ch.id}?manga=${mangaId}`}
-                  className={cn(
-                    'flex items-center justify-between px-4 py-3',
-                    'hover:bg-bg-card-hover transition-colors group',
-                  )}
-                >
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm text-text-primary group-hover:text-accent-purple transition-colors">
-                      Ch. {ch.chapter}
-                      {ch.title && (
-                        <span className="text-text-muted ml-2">— {ch.title}</span>
-                      )}
-                    </span>
-                    {ch.scanlationGroup && (
-                      <p className="text-xs text-text-muted mt-0.5 truncate">
-                        {ch.scanlationGroup}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-xs text-text-muted ml-4 flex-shrink-0">
-                    {ch.publishAt ? formatDate(ch.publishAt) : ''}
                   </span>
-                </Link>
-              );
-            })
+                </div>
+              </Link>
+            ))
           )}
         </div>
       </div>

@@ -1,43 +1,69 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Reader } from '@/components/Reader';
-import { getChapterNavigation } from '@/lib/mangadex';
+import { getChapterNavigation } from '@/lib/consumet';
+import { getMangaById } from '@/lib/mal';
 
 interface PageProps {
   params: Promise<{ chapterId: string }>;
-  searchParams: Promise<{ manga?: string }>;
+  searchParams: Promise<{ manga?: string; mpid?: string }>;
 }
 
 async function ReaderWrapper({
   chapterId,
-  mangaIdParam,
+  malId,
+  mangaPillId,
 }: {
   chapterId: string;
-  mangaIdParam?: string;
+  malId?: string;
+  mangaPillId?: string;
 }) {
-  let mangaId = mangaIdParam || '';
   let mangaTitle = '';
   let chapterNumber = '';
   let prevChapter: string | undefined;
   let nextChapter: string | undefined;
+  let coverImage = '';
 
-  try {
-    const nav = await getChapterNavigation(chapterId, mangaIdParam);
-    mangaId = nav.mangaId;
-    mangaTitle = nav.mangaTitle;
-    chapterNumber = nav.chapterNumber;
-    prevChapter = nav.prevChapter;
-    nextChapter = nav.nextChapter;
-  } catch {
-    // Navigation failed, reader still works without prev/next
+  // Get manga title from MAL
+  if (malId) {
+    try {
+      const malIdNum = parseInt(malId);
+      if (!isNaN(malIdNum)) {
+        const manga = await getMangaById(malIdNum);
+        mangaTitle = manga.title;
+        coverImage = manga.coverImage;
+      }
+    } catch {
+      // MAL unavailable
+    }
+  }
+
+  // Get chapter navigation from MangaPill
+  if (mangaPillId) {
+    try {
+      const nav = await getChapterNavigation(chapterId, mangaPillId);
+      chapterNumber = nav.chapterNumber;
+      prevChapter = nav.prevChapter;
+      nextChapter = nav.nextChapter;
+    } catch {
+      // Navigation failed, reader still works without prev/next
+    }
+  }
+
+  // If we couldn't get chapter number, try to extract from ID
+  if (!chapterNumber || chapterNumber === '?') {
+    const match = chapterId.match(/chapter-(\d+(?:\.\d+)?)/);
+    if (match) chapterNumber = match[1];
   }
 
   return (
     <Reader
       chapterId={chapterId}
-      mangaId={mangaId}
+      mangaId={malId}
+      mangaPillId={mangaPillId}
       mangaTitle={mangaTitle}
       chapterNumber={chapterNumber}
+      coverImage={coverImage}
       prevChapterId={prevChapter}
       nextChapterId={nextChapter}
     />
@@ -46,7 +72,8 @@ async function ReaderWrapper({
 
 export default async function ReadPage({ params, searchParams }: PageProps) {
   const { chapterId } = await params;
-  const { manga } = await searchParams;
+  const decodedChapterId = decodeURIComponent(chapterId);
+  const { manga: malId, mpid } = await searchParams;
 
   return (
     <Suspense
@@ -57,7 +84,7 @@ export default async function ReadPage({ params, searchParams }: PageProps) {
         </div>
       }
     >
-      <ReaderWrapper chapterId={chapterId} mangaIdParam={manga} />
+      <ReaderWrapper chapterId={decodedChapterId} malId={malId} mangaPillId={mpid} />
     </Suspense>
   );
 }

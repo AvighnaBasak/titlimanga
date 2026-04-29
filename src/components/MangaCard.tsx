@@ -13,8 +13,8 @@ export function MangaCard({ manga, showScore = true, priority = false }: MangaCa
   const href = manga.source === 'mal' ? `/manga/${manga.id}` : `/manga/${manga.id}?source=md`;
 
   return (
-    <Link href={href} className="group block">
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden bg-bg-card border border-border-subtle transition-all duration-300 group-hover:border-accent-purple/30 group-hover:shadow-[0_8px_30px_rgba(0,0,0,0.4)] group-hover:-translate-y-1">
+    <Link href={href} className="group block w-full">
+      <div className="relative aspect-[3/4] rounded shadow-sm overflow-hidden border border-white/5 bg-[#141b29]">
         {manga.coverImage ? (
           <img
             src={manga.coverImage}
@@ -24,36 +24,34 @@ export function MangaCard({ manga, showScore = true, priority = false }: MangaCa
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-text-muted text-sm bg-bg-elevated">
+          <div className="w-full h-full flex items-center justify-center text-white/30 text-xs">
             No Cover
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
+        {/* Top score badge */}
         {showScore && manga.score && (
-          <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 backdrop-blur-sm rounded-md px-1.5 py-0.5 text-xs">
-            <Star size={10} className="text-yellow-400 fill-yellow-400" />
-            <span className="text-yellow-100 font-medium">{(manga.score / 10).toFixed(1)}</span>
+          <div className="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded">
+            {(manga.score / 10).toFixed(1)}
           </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          {manga.status && (
-            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-accent-purple/80 text-white mb-1">
+        {manga.status && (
+          <div className="absolute bottom-0 left-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-t from-black/80 to-transparent">
+            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-white/20 text-white backdrop-blur-sm">
               {manga.status}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      <div className="mt-2 px-0.5">
-        <h3 className="text-sm font-medium text-text-primary line-clamp-2 leading-snug group-hover:text-accent-purple transition-colors">
-          {truncate(manga.title, 60)}
+      <div className="mt-2.5 text-center px-1">
+        <h3 className="text-[13px] font-bold text-white truncate group-hover:text-blue-400 transition-colors">
+          {manga.title}
         </h3>
         {manga.genres && manga.genres.length > 0 && (
-          <p className="text-[11px] text-text-muted mt-0.5 line-clamp-1">
-            {manga.genres.slice(0, 3).join(' · ')}
+          <p className="text-[10px] text-white/40 mt-0.5 truncate">
+            {manga.genres.slice(0, 2).join(' / ')}
           </p>
         )}
       </div>
@@ -64,9 +62,11 @@ export function MangaCard({ manga, showScore = true, priority = false }: MangaCa
 export function MangaCardSkeleton() {
   return (
     <div>
-      <div className="aspect-[3/4] skeleton rounded-xl" />
-      <div className="mt-2 h-4 skeleton w-3/4 rounded" />
-      <div className="mt-1.5 h-3 skeleton w-1/2 rounded" />
+      <div className="aspect-[3/4] skeleton rounded shadow-sm border border-white/5 bg-[#141b29]" />
+      <div className="mt-2.5 flex flex-col items-center px-1">
+        <div className="h-3.5 skeleton w-3/4 rounded mb-1.5" />
+        <div className="h-2.5 skeleton w-1/2 rounded" />
+      </div>
     </div>
   );
 }

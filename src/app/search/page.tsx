@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Search, Loader2 } from 'lucide-react';
-import { Manga, MangaDexSearchResult } from '@/lib/types';
-import { MangaGrid } from '@/components/MangaGrid';
+import { Search, Loader2, Compass } from 'lucide-react';
+import { Manga } from '@/lib/types';
+import { MangaGrid, MangaGridSkeleton } from '@/components/MangaGrid';
 import { SectionHeader } from '@/components/SectionHeader';
-import { Suspense } from 'react';
+import Link from 'next/link';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -22,28 +22,11 @@ function SearchContent() {
     if (q.trim().length < 2) return;
     setLoading(true);
     setSearched(true);
-
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
       const data = await res.json();
-
       const malManga: Manga[] = data.mal || [];
-      const mdResults: MangaDexSearchResult[] = data.mangadex || [];
-
-      const seen = new Set(malManga.map((m: Manga) => m.title.toLowerCase()));
-      const mdManga: Manga[] = mdResults
-        .filter((m: MangaDexSearchResult) => !seen.has(m.title.toLowerCase()))
-        .map((m: MangaDexSearchResult) => ({
-          id: m.id,
-          title: m.title,
-          coverImage: m.coverFileName
-            ? `https://uploads.mangadex.org/covers/${m.id}/${m.coverFileName}.512.jpg`
-            : '',
-          source: 'mangadex' as const,
-          description: '',
-        }));
-
-      setResults([...malManga, ...mdManga]);
+      setResults(malManga);
     } catch {
       setResults([]);
     } finally {
@@ -64,43 +47,62 @@ function SearchContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <SectionHeader title="Search Manga" subtitle="Find your next favorite read" />
+    <div className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-28 pb-10">
+      <div className="mb-8">
+        <SectionHeader title="Browse Manga" subtitle="Search across the MyAnimeList database" />
+      </div>
 
-      <form onSubmit={handleSubmit} className="max-w-2xl mb-8">
-        <div className="flex items-center bg-bg-card border border-border-subtle rounded-xl overflow-hidden focus-within:border-accent-purple transition-colors">
-          <Search size={20} className="ml-4 text-text-muted flex-shrink-0" />
+      <form onSubmit={handleSubmit} className="max-w-2xl mb-10">
+        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg overflow-hidden focus-within:border-white/20 transition-colors">
+          <Search size={17} className="ml-4 text-white/40 flex-shrink-0" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by title..."
-            className="flex-1 bg-transparent px-4 py-3 text-text-primary placeholder:text-text-muted outline-none"
+            className="flex-1 bg-transparent px-4 py-3 text-text-primary placeholder:text-text-muted outline-none text-sm"
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 bg-accent-purple text-white font-medium hover:bg-accent-violet transition-colors disabled:opacity-50"
+            className="px-6 py-3.5 btn-primary rounded-none text-[13px] disabled:opacity-50 flex items-center gap-2"
           >
-            {loading ? <Loader2 size={18} className="animate-spin" /> : 'Search'}
+            {loading ? <Loader2 size={15} className="animate-spin" /> : 'Search'}
           </button>
         </div>
       </form>
 
-      {loading && (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 size={28} className="animate-spin text-accent-purple" />
+      {loading && <MangaGridSkeleton count={12} />}
+
+      {!loading && !searched && (
+        <div className="text-center py-24 border border-dashed border-border-subtle rounded-2xl">
+          <Compass size={36} className="mx-auto mb-3 text-text-muted opacity-40" />
+          <p className="text-text-primary font-medium text-sm">Search for any manga</p>
+          <p className="text-text-muted text-[12px] mt-1">Type a title above to get started</p>
         </div>
       )}
 
       {!loading && searched && results.length === 0 && (
-        <div className="text-center py-16 text-text-muted">
-          No results found for &ldquo;{initialQuery}&rdquo;
+        <div className="text-center py-24 border border-dashed border-border-subtle rounded-2xl">
+          <Search size={36} className="mx-auto mb-3 text-text-muted opacity-40" />
+          <p className="text-text-primary font-medium text-sm mb-1">No results for &ldquo;{initialQuery}&rdquo;</p>
+          <p className="text-text-muted text-[12px] mb-5">Try a different title or spelling</p>
+          <Link href="/" className="inline-flex items-center gap-2 px-5 py-2 btn-primary rounded-xl text-sm">
+            Back to Home
+          </Link>
         </div>
       )}
 
       {!loading && results.length > 0 && (
-        <MangaGrid manga={results} />
+        <>
+          <div className="mb-5">
+            <SectionHeader
+              title={`Results for "${initialQuery}"`}
+              subtitle={`${results.length} titles found`}
+            />
+          </div>
+          <MangaGrid manga={results} />
+        </>
       )}
     </div>
   );
@@ -108,13 +110,13 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="flex items-center justify-center py-32">
-          <Loader2 size={28} className="animate-spin text-accent-purple" />
-        </div>
-      }
-    >
+    <Suspense fallback={
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 pt-28 pb-10">
+        <div className="h-7 skeleton rounded w-40 mb-8" />
+        <div className="h-12 skeleton rounded-xl w-full max-w-2xl mb-10" />
+        <MangaGridSkeleton count={12} />
+      </div>
+    }>
       <SearchContent />
     </Suspense>
   );

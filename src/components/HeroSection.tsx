@@ -1,81 +1,109 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Search, Sparkles } from 'lucide-react';
-import { ButterflyLogo } from './ButterflyLogo';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+import type { Manga } from '@/lib/types';
+import { stripHtml } from '@/lib/utils';
+import { BookmarkButton } from './BookmarkButton';
 
-const POPULAR_SEARCHES = ['One Piece', 'Jujutsu Kaisen', 'Chainsaw Man', 'Solo Leveling', 'Berserk'];
+interface HeroSectionProps {
+  featuredManga?: Manga;
+}
 
-export function HeroSection() {
-  const [query, setQuery] = useState('');
-  const router = useRouter();
+export function HeroSection({ featuredManga }: HeroSectionProps) {
+  if (!featuredManga) return <HeroSectionSkeleton />;
 
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (query.trim().length >= 2) {
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-    }
-  }
+  const href = featuredManga.source === 'mal' ? `/manga/${featuredManga.id}` : `/manga/${featuredManga.id}?source=md`;
+  const desc = featuredManga.description ? stripHtml(featuredManga.description) : '';
 
   return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-accent-purple/8 via-transparent to-transparent" />
-        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] rounded-full bg-accent-purple/5 blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] rounded-full bg-accent-pink/5 blur-[100px]" />
+    <section className="relative w-full h-[500px] md:h-[600px] flex items-center border-b border-[#2c2d33]">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        {featuredManga.bannerImage || featuredManga.coverImage ? (
+          <img
+            src={featuredManga.bannerImage || featuredManga.coverImage}
+            alt={featuredManga.title}
+            className="w-full h-full object-cover opacity-80"
+            style={{ objectPosition: 'center 20%' }}
+          />
+        ) : (
+          <div className="w-full h-full bg-[#0d0d0f]" />
+        )}
+        
+        {/* Vagabond Header Gradient (Vignette) */}
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, transparent 0%, #0d0d0f 100%), linear-gradient(to right, #0d0d0f 0%, transparent 50%)'
+          }}
+        />
       </div>
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-14 sm:pt-16 sm:pb-18">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 mb-6">
-            <ButterflyLogo size={18} />
-            <span className="text-xs font-medium text-accent-purple">Your Manga Gateway</span>
-          </div>
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 w-full pt-16">
+        <h2 className="text-white text-lg title-aggressive mb-4 text-[#8a8b8f]">Trending Now</h2>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-            Welcome to{' '}
-            <span className="gradient-text">Titli Manga</span>
-          </h1>
-
-          <p className="mt-3 text-text-secondary text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
-            Discover and read thousands of manga titles for free with a beautiful reading experience.
-          </p>
-
-          <form onSubmit={handleSearch} className="mt-8 max-w-xl mx-auto">
-            <div className="flex items-center bg-bg-card border border-border-subtle rounded-xl overflow-hidden focus-within:border-accent-purple/50 focus-within:shadow-[0_0_0_3px_rgba(139,92,246,0.1)] transition-all duration-200">
-              <Search size={18} className="ml-4 text-text-muted flex-shrink-0" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for manga..."
-                className="flex-1 bg-transparent px-3 py-3.5 text-text-primary placeholder:text-text-muted outline-none text-sm"
-              />
-              <button
-                type="submit"
-                className="px-5 py-3.5 btn-primary rounded-none text-sm"
-              >
-                Search
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-            <span className="text-text-muted text-xs flex items-center gap-1">
-              <Sparkles size={12} />
-              Popular:
-            </span>
-            {POPULAR_SEARCHES.map((title) => (
-              <button
-                key={title}
-                onClick={() => router.push(`/search?q=${encodeURIComponent(title)}`)}
-                className="px-2.5 py-1 bg-bg-card/80 border border-border-subtle rounded-lg text-xs text-text-secondary hover:text-accent-purple hover:border-accent-purple/40 transition-all"
-              >
-                {title}
-              </button>
+        {featuredManga.genres && featuredManga.genres.length > 0 && (
+          <div className="flex gap-2 mb-6">
+            {featuredManga.genres.slice(0, 4).map((g) => (
+              <span key={g} className="px-3 py-1 bg-[#16171d]/80 border border-[#2c2d33] rounded text-[11px] font-bold text-[#e2e8f0] uppercase tracking-wider">
+                {g}
+              </span>
             ))}
           </div>
+        )}
+
+        <p className="text-[#8a8b8f] text-sm md:text-[15px] leading-relaxed max-w-2xl mb-8 line-clamp-3 md:line-clamp-4">
+          {desc}
+        </p>
+
+        <h1 className="text-5xl md:text-7xl lg:text-8xl title-aggressive text-white mb-2 leading-none">
+          {featuredManga.title}
+        </h1>
+        {featuredManga.titleJapanese && (
+          <h2 className="text-xl md:text-2xl text-[#8a8b8f] font-bold mb-10 tracking-widest uppercase">
+            {featuredManga.titleJapanese}
+          </h2>
+        )}
+
+        <div className="flex items-center gap-3">
+          <Link
+            href={href}
+            className="inline-flex items-center gap-2 bg-white text-[#0d0d0f] px-8 py-3 title-aggressive text-sm hover:bg-gray-200 transition-colors"
+          >
+            Chapter 1 <ArrowRight size={16} />
+          </Link>
+          <div className="bg-[#16171d]/80 border border-[#2c2d33] hover:bg-[#2c2d33] transition-colors flex items-center justify-center p-0.5">
+             <BookmarkButton 
+               mangaId={featuredManga.id} 
+               title={featuredManga.title} 
+               coverImage={featuredManga.coverImage || ''} 
+               source="mal" 
+               className="bg-transparent border-none px-3 py-2 h-full"
+             />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function HeroSectionSkeleton() {
+  return (
+    <section className="relative w-full h-[500px] md:h-[600px] flex items-center bg-bg-primary">
+      <div className="relative z-10 max-w-[1400px] mx-auto px-4 sm:px-8 w-full pt-16">
+        <div className="h-8 skeleton w-48 mb-4" />
+        <div className="flex gap-2 mb-6">
+          <div className="h-6 skeleton w-16" />
+          <div className="h-6 skeleton w-20" />
+        </div>
+        <div className="h-4 skeleton w-full max-w-2xl mb-2" />
+        <div className="h-4 skeleton w-full max-w-xl mb-8" />
+        <div className="h-16 skeleton w-3/4 max-w-3xl mb-4" />
+        <div className="h-8 skeleton w-64 mb-10" />
+        <div className="flex items-center gap-3">
+          <div className="h-10 skeleton w-32" />
+          <div className="h-10 skeleton w-10" />
         </div>
       </div>
     </section>

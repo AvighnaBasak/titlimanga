@@ -1,12 +1,8 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getMangaById } from '@/lib/mal';
-import {
-  getMangaDexManga,
-  getMangaChapters,
-  findMangaDexMatch,
-} from '@/lib/mangadex';
-import { isUUID, stripHtml } from '@/lib/utils';
+import { findMangaPillId, getMangaPillChapters } from '@/lib/consumet';
+import { stripHtml } from '@/lib/utils';
 import { Manga, Chapter } from '@/lib/types';
 import { ChapterList } from '@/components/ChapterList';
 import { BookmarkButton } from '@/components/BookmarkButton';
@@ -14,62 +10,55 @@ import { Star, BookOpen, Calendar, Tag, Loader2 } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ source?: string }>;
+  searchParams: Promise<{ mangapill?: string }>;
 }
 
 async function fetchMangaData(
   id: string,
-  source?: string,
-): Promise<{ manga: Manga; chapters: Chapter[]; mangadexId: string }> {
-  const isMangaDex = isUUID(id) || source === 'md';
-
-  if (isMangaDex) {
-    const [manga, chapData] = await Promise.all([
-      getMangaDexManga(id),
-      getMangaChapters(id),
-    ]);
-    return { manga, chapters: chapData.chapters, mangadexId: id };
-  }
-
+  mangapillHint?: string,
+): Promise<{ manga: Manga; chapters: Chapter[]; mangaPillId: string }> {
   const malId = parseInt(id);
   if (isNaN(malId)) notFound();
 
   const manga = await getMangaById(malId);
 
   let chapters: Chapter[] = [];
-  let mangadexId = '';
+  let mangaPillId = mangapillHint || '';
+
   try {
-    const matchId = await findMangaDexMatch(manga.title, manga.titleJapanese);
-    if (matchId) {
-      mangadexId = matchId;
-      const chapData = await getMangaChapters(mangadexId);
+    if (!mangaPillId) {
+      const foundId = await findMangaPillId(malId, manga.title);
+      if (foundId) mangaPillId = foundId;
+    }
+
+    if (mangaPillId) {
+      const chapData = await getMangaPillChapters(mangaPillId);
       chapters = chapData.chapters;
     }
   } catch {
-    // MangaDex unavailable
+    // MangaPill unavailable — show metadata without chapters
   }
 
-  return { manga, chapters, mangadexId };
+  return { manga, chapters, mangaPillId };
 }
 
-async function MangaContent({ id, source }: { id: string; source?: string }) {
+async function MangaContent({ id, mangapillHint }: { id: string; mangapillHint?: string }) {
   let data;
   try {
-    data = await fetchMangaData(id, source);
+    data = await fetchMangaData(id, mangapillHint);
   } catch {
     notFound();
   }
 
-  const { manga, chapters, mangadexId } = data;
+  const { manga, chapters, mangaPillId } = data;
   const description = manga.description ? stripHtml(manga.description) : '';
 
-  const firstReadable = chapters.find((ch) => ch.pages > 0);
-  const firstExternal = chapters.find((ch) => ch.externalUrl);
+  const firstChapter = chapters.length > 0 ? chapters[0] : undefined;
 
   return (
     <div className="animate-fade-in">
       {/* Banner */}
-      <div className="relative h-48 sm:h-64 overflow-hidden">
+      <div className="relative h-52 sm:h-72 overflow-hidden">
         {manga.bannerImage ? (
           <img
             src={manga.bannerImage}
@@ -80,10 +69,10 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
           <img
             src={manga.coverImage}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40"
+            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-30"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/15 to-accent-pink/15" />
+          <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 to-accent-pink/10" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/70 to-bg-primary/20" />
       </div>
@@ -119,9 +108,9 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
             {/* Stats row */}
             <div className="flex flex-wrap items-center gap-4 mt-4">
               {manga.score && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-400/10 rounded-lg">
-                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
-                  <span className="text-yellow-300 text-sm font-semibold">{(manga.score / 10).toFixed(1)}</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                  <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                  <span className="text-yellow-500 text-sm font-bold">{(manga.score / 10).toFixed(1)}</span>
                 </div>
               )}
               {manga.status && (
@@ -166,25 +155,15 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
                 coverImage={manga.coverImage}
                 source={manga.source}
               />
-              {firstReadable ? (
+              {firstChapter && (
                 <a
-                  href={`/read/${firstReadable.id}?manga=${mangadexId || id}`}
+                  href={`/read/${encodeURIComponent(firstChapter.id)}?manga=${manga.id}&mpid=${encodeURIComponent(mangaPillId)}`}
                   className="flex items-center gap-2 px-4 py-2 btn-primary text-sm"
                 >
                   <BookOpen size={16} />
                   Start Reading
                 </a>
-              ) : firstExternal ? (
-                <a
-                  href={firstExternal.externalUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 btn-primary text-sm"
-                >
-                  <BookOpen size={16} />
-                  Read on Official Site
-                </a>
-              ) : null}
+              )}
             </div>
 
             {/* Description */}
@@ -198,7 +177,11 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
 
         {/* Chapters */}
         <div className="mt-10 mb-8">
-          <ChapterList chapters={chapters} mangaId={mangadexId || id} />
+          <ChapterList
+            chapters={chapters}
+            mangaId={manga.id}
+            mangaPillId={mangaPillId}
+          />
         </div>
       </div>
     </div>
@@ -207,7 +190,7 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
 
 export default async function MangaPage({ params, searchParams }: PageProps) {
   const { id } = await params;
-  const { source } = await searchParams;
+  const { mangapill } = await searchParams;
 
   return (
     <Suspense
@@ -217,7 +200,7 @@ export default async function MangaPage({ params, searchParams }: PageProps) {
         </div>
       }
     >
-      <MangaContent id={id} source={source} />
+      <MangaContent id={id} mangapillHint={mangapill} />
     </Suspense>
   );
 }

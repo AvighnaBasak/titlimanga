@@ -4,13 +4,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ArrowUp, Loader2 } from 'lucide-react';
 import { ChapterPage } from '@/lib/types';
-import { proxyImageUrl, cn, isUUID } from '@/lib/utils';
+import { proxyImageUrl, cn } from '@/lib/utils';
 
 import { addToReadingHistory } from '@/lib/storage';
 
 interface ReaderProps {
   chapterId: string;
   mangaId?: string;
+  mangaPillId?: string;
   mangaTitle?: string;
   chapterNumber?: string;
   coverImage?: string;
@@ -21,6 +22,7 @@ interface ReaderProps {
 export function Reader({
   chapterId,
   mangaId,
+  mangaPillId,
   mangaTitle,
   chapterNumber,
   coverImage,
@@ -46,7 +48,8 @@ export function Reader({
       prefetchedRef.current = new Set();
 
       try {
-        const res = await fetch(`/api/chapter/${chapterId}`);
+        // Pass the full MangaPill chapter ID as a query param
+        const res = await fetch(`/api/chapter/_?id=${encodeURIComponent(chapterId)}`);
         if (!res.ok) throw new Error('Failed to load chapter');
         const data = await res.json();
         if (!cancelled) setPages(data.pages);
@@ -60,7 +63,6 @@ export function Reader({
     fetchPages();
 
     if (mangaId && mangaTitle && chapterNumber) {
-      const source = isUUID(mangaId) ? 'mangadex' : 'mal';
       addToReadingHistory({
         mangaId,
         mangaTitle,
@@ -68,7 +70,7 @@ export function Reader({
         chapterNumber,
         coverImage: coverImage || '',
         timestamp: Date.now(),
-        source,
+        source: 'mal',
       });
     }
 
@@ -132,6 +134,14 @@ export function Reader({
     setLoadedImages((prev) => new Set(prev).add(index));
   }
 
+  // Build navigation URLs
+  function buildReadUrl(chId: string) {
+    const params = new URLSearchParams();
+    if (mangaId) params.set('manga', mangaId);
+    if (mangaPillId) params.set('mpid', mangaPillId);
+    return `/read/${encodeURIComponent(chId)}?${params.toString()}`;
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-4">
@@ -163,23 +173,14 @@ export function Reader({
             This chapter is not available for reading
           </p>
           <p className="text-text-muted text-sm max-w-md">
-            This chapter may be hosted on an external platform (like MangaPlus) and cannot be read
-            directly. Check the manga page for external links.
+            This chapter may not be available on MangaPill. Try another chapter or check back later.
           </p>
         </div>
         <div className="flex gap-3">
-          <a
-            href={`https://mangadex.org/chapter/${chapterId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 bg-accent-purple rounded-lg text-white text-sm hover:bg-accent-violet transition-colors"
-          >
-            View on MangaDex
-          </a>
           {mangaId && (
             <Link
-              href={isUUID(mangaId) ? `/manga/${mangaId}?source=md` : `/manga/${mangaId}`}
-              className="px-4 py-2 bg-bg-card border border-border-subtle rounded-lg text-sm text-text-secondary hover:text-accent-purple transition-all"
+              href={`/manga/${mangaId}`}
+              className="px-4 py-2 bg-accent-purple rounded-lg text-white text-sm hover:bg-accent-violet transition-colors"
             >
               Back to Manga
             </Link>
@@ -188,7 +189,7 @@ export function Reader({
         <div className="flex gap-3 mt-2">
           {prevChapterId && (
             <Link
-              href={`/read/${prevChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+              href={buildReadUrl(prevChapterId)}
               className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
             >
               &larr; Previous Chapter
@@ -196,7 +197,7 @@ export function Reader({
           )}
           {nextChapterId && (
             <Link
-              href={`/read/${nextChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+              href={buildReadUrl(nextChapterId)}
               className="text-sm text-text-secondary hover:text-accent-purple transition-colors"
             >
               Next Chapter &rarr;
@@ -214,7 +215,7 @@ export function Reader({
         <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-2">
           {prevChapterId ? (
             <Link
-              href={`/read/${prevChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+              href={buildReadUrl(prevChapterId)}
               className="flex items-center gap-1 text-sm text-text-secondary hover:text-accent-purple transition-colors"
             >
               <ChevronLeft size={16} />
@@ -227,13 +228,7 @@ export function Reader({
           <div className="text-center">
             {mangaTitle && (
               <Link
-                href={
-                  mangaId
-                    ? isUUID(mangaId)
-                      ? `/manga/${mangaId}?source=md`
-                      : `/manga/${mangaId}`
-                    : '#'
-                }
+                href={mangaId ? `/manga/${mangaId}` : '#'}
                 className="text-xs text-text-muted hover:text-accent-purple transition-colors block"
               >
                 {mangaTitle}
@@ -246,7 +241,7 @@ export function Reader({
 
           {nextChapterId ? (
             <Link
-              href={`/read/${nextChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+              href={buildReadUrl(nextChapterId)}
               className="flex items-center gap-1 text-sm text-text-secondary hover:text-accent-purple transition-colors"
             >
               Next
@@ -291,7 +286,7 @@ export function Reader({
       <div className="max-w-3xl mx-auto flex items-center justify-between px-4 py-6 border-t border-border-subtle">
         {prevChapterId ? (
           <Link
-            href={`/read/${prevChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+            href={buildReadUrl(prevChapterId)}
             className="flex items-center gap-2 px-4 py-2 bg-bg-card border border-border-subtle rounded-lg text-sm text-text-secondary hover:text-accent-purple hover:border-accent-purple transition-all"
           >
             <ChevronLeft size={16} />
@@ -302,7 +297,7 @@ export function Reader({
         )}
         {nextChapterId ? (
           <Link
-            href={`/read/${nextChapterId}${mangaId ? `?manga=${mangaId}` : ''}`}
+            href={buildReadUrl(nextChapterId)}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-accent-purple to-accent-pink rounded-lg text-sm text-white font-medium hover:opacity-90 transition-opacity"
           >
             Next Chapter
@@ -310,13 +305,7 @@ export function Reader({
           </Link>
         ) : (
           <Link
-            href={
-              mangaId
-                ? isUUID(mangaId)
-                  ? `/manga/${mangaId}?source=md`
-                  : `/manga/${mangaId}`
-                : '/'
-            }
+            href={mangaId ? `/manga/${mangaId}` : '/'}
             className="flex items-center gap-2 px-4 py-2 bg-bg-card border border-border-subtle rounded-lg text-sm text-text-secondary hover:text-accent-purple transition-all"
           >
             Back to Manga
