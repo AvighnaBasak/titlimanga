@@ -1,21 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ALLOWED_HOSTS = [
-  'uploads.mangadex.org',
-  'mangadex.org',
-  'cmdxd98sb0x3yprd.mangadex.network',
-  's4.anilist.co',
-  'img.anili.st',
-  'cdn.myanimelist.net',
-];
-
-
 function isAllowedUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
+    const h = parsed.hostname;
     return (
-      (parsed.protocol === 'https:' || parsed.protocol === 'http:') &&
-      (ALLOWED_HOSTS.some((h) => parsed.hostname === h || parsed.hostname.endsWith('.mangadex.network')))
+      h === 'mangadex.org' ||
+      h.endsWith('.mangadex.org') ||
+      h.endsWith('.mangadex.network') ||
+      h === 'cdn.myanimelist.net' ||
+      h === 's4.anilist.co' ||
+      h === 'img.anili.st'
     );
   } catch {
     return false;
@@ -38,10 +34,10 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(url, {
       headers: {
-        'Referer': parsed.origin,
+        Referer: parsed.origin,
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'image/webp,image/apng,image/*,*/*;q=0.8',
+        Accept: 'image/webp,image/apng,image/*,*/*;q=0.8',
       },
     });
 

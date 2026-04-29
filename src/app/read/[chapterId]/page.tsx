@@ -15,29 +15,21 @@ async function ReaderWrapper({
   chapterId: string;
   mangaIdParam?: string;
 }) {
-  let mangaId = mangaIdParam;
+  let mangaId = mangaIdParam || '';
   let mangaTitle = '';
   let chapterNumber = '';
   let prevChapter: string | undefined;
   let nextChapter: string | undefined;
 
   try {
-    const nav = await getChapterNavigation(chapterId);
-    mangaId = mangaId || nav.mangaId;
+    const nav = await getChapterNavigation(chapterId, mangaIdParam);
+    mangaId = nav.mangaId;
     mangaTitle = nav.mangaTitle;
+    chapterNumber = nav.chapterNumber;
     prevChapter = nav.prevChapter;
     nextChapter = nav.nextChapter;
-
-    const chapterRes = await fetch(
-      `https://api.mangadex.org/chapter/${chapterId}`,
-      { next: { revalidate: 3600 } },
-    );
-    if (chapterRes.ok) {
-      const chapterData = await chapterRes.json();
-      chapterNumber = chapterData.data?.attributes?.chapter || '';
-    }
   } catch {
-    // Navigation data failed, reader still works
+    // Navigation failed, reader still works without prev/next
   }
 
   return (

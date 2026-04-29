@@ -1,7 +1,11 @@
 import { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getMangaById } from '@/lib/mal';
-import { getMangaDexManga, getMangaChapters, searchMangaDex } from '@/lib/mangadex';
+import {
+  getMangaDexManga,
+  getMangaChapters,
+  findMangaDexMatch,
+} from '@/lib/mangadex';
 import { isUUID, stripHtml } from '@/lib/utils';
 import { Manga, Chapter } from '@/lib/types';
 import { ChapterList } from '@/components/ChapterList';
@@ -27,24 +31,22 @@ async function fetchMangaData(
     return { manga, chapters: chapData.chapters, mangadexId: id };
   }
 
-  // MAL source
   const malId = parseInt(id);
   if (isNaN(malId)) notFound();
 
   const manga = await getMangaById(malId);
 
-  // Search MangaDex for chapters by title
   let chapters: Chapter[] = [];
   let mangadexId = '';
   try {
-    const mdResults = await searchMangaDex(manga.title, 5);
-    if (mdResults.length > 0) {
-      mangadexId = mdResults[0].id;
+    const matchId = await findMangaDexMatch(manga.title, manga.titleJapanese);
+    if (matchId) {
+      mangadexId = matchId;
       const chapData = await getMangaChapters(mangadexId);
       chapters = chapData.chapters;
     }
   } catch {
-    // MangaDex search failed, show manga without chapters
+    // MangaDex unavailable
   }
 
   return { manga, chapters, mangadexId };
@@ -63,7 +65,6 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
 
   return (
     <div>
-      {/* Banner */}
       <div className="relative h-64 sm:h-80 overflow-hidden">
         {manga.bannerImage ? (
           <img
@@ -77,10 +78,8 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
         <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-bg-primary/60 to-transparent" />
       </div>
 
-      {/* Info section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-32 relative z-10">
         <div className="flex flex-col sm:flex-row gap-6">
-          {/* Cover */}
           <div className="flex-shrink-0 w-40 sm:w-52">
             <div className="aspect-[3/4] relative rounded-xl overflow-hidden border-2 border-border-subtle shadow-2xl">
               {manga.coverImage ? (
@@ -97,14 +96,14 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
             </div>
           </div>
 
-          {/* Details */}
           <div className="flex-1 pt-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">{manga.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
+              {manga.title}
+            </h1>
             {manga.titleJapanese && (
               <p className="text-text-muted text-sm mt-1">{manga.titleJapanese}</p>
             )}
 
-            {/* Meta badges */}
             <div className="flex flex-wrap gap-3 mt-4">
               {manga.score && (
                 <div className="flex items-center gap-1.5 text-yellow-400 text-sm">
@@ -132,7 +131,6 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
               )}
             </div>
 
-            {/* Genres */}
             {manga.genres && manga.genres.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {manga.genres.map((genre) => (
@@ -146,7 +144,6 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
               </div>
             )}
 
-            {/* Actions */}
             <div className="flex gap-3 mt-6">
               <BookmarkButton
                 mangaId={manga.id}
@@ -165,7 +162,6 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
               )}
             </div>
 
-            {/* Description */}
             {description && (
               <div className="mt-6">
                 <p className="text-text-secondary text-sm leading-relaxed line-clamp-6">
@@ -176,7 +172,6 @@ async function MangaContent({ id, source }: { id: string; source?: string }) {
           </div>
         </div>
 
-        {/* Chapters */}
         <div className="mt-10">
           <ChapterList chapters={chapters} mangaId={mangadexId || id} />
         </div>
