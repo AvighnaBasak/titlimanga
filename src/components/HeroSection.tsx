@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, TrendingUp, Sparkles } from 'lucide-react';
-import { ButterflyLogo, ButterflyDecoration } from './ButterflyLogo';
+import { Search, Sparkles } from 'lucide-react';
+import { ButterflyLogo } from './ButterflyLogo';
+
+const POPULAR_SEARCHES = ['One Piece', 'Jujutsu Kaisen', 'Chainsaw Man', 'Solo Leveling', 'Berserk'];
 
 export function HeroSection() {
   const [query, setQuery] = useState('');
@@ -17,87 +19,62 @@ export function HeroSection() {
   }
 
   return (
-    <section className="relative overflow-hidden py-16 sm:py-24">
-      {/* Background gradients */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-accent-purple/10 blur-[100px]" />
-        <div className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-accent-pink/10 blur-[80px]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-accent-teal/5 blur-[120px]" />
+    <section className="relative overflow-hidden">
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-accent-purple/8 via-transparent to-transparent" />
+        <div className="absolute top-0 left-1/4 w-[500px] h-[300px] rounded-full bg-accent-purple/5 blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[400px] h-[250px] rounded-full bg-accent-pink/5 blur-[100px]" />
       </div>
 
-      {/* Floating butterflies */}
-      <ButterflyDecoration className="absolute top-12 right-[15%] hidden lg:block" />
-      <ButterflyDecoration className="absolute bottom-16 left-[10%] hidden lg:block" />
-      <ButterflyDecoration className="absolute top-1/3 left-[5%] hidden xl:block" />
-
-      <div className="relative max-w-4xl mx-auto px-4 text-center">
-        <div className="flex justify-center mb-6">
-          <ButterflyLogo size={64} className="animate-float" />
-        </div>
-
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-          <span className="gradient-text">Titli Manga</span>
-        </h1>
-
-        <p className="mt-4 text-text-secondary text-lg sm:text-xl max-w-2xl mx-auto">
-          Your butterfly gateway to the world of manga. Read thousands of titles for free.
-        </p>
-
-        {/* Search */}
-        <form
-          onSubmit={handleSearch}
-          className="mt-8 max-w-xl mx-auto relative"
-        >
-          <div className="flex items-center bg-bg-card border border-border-subtle rounded-2xl overflow-hidden focus-within:border-accent-purple focus-within:glow-purple transition-all duration-300">
-            <Search size={20} className="ml-4 text-text-muted flex-shrink-0" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search for manga..."
-              className="flex-1 bg-transparent px-4 py-4 text-text-primary placeholder:text-text-muted outline-none text-base"
-            />
-            <button
-              type="submit"
-              className="px-6 py-4 bg-gradient-to-r from-accent-purple to-accent-pink text-white font-medium hover:opacity-90 transition-opacity"
-            >
-              Search
-            </button>
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-12 pb-14 sm:pt-16 sm:pb-18">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-purple/10 border border-accent-purple/20 mb-6">
+            <ButterflyLogo size={18} />
+            <span className="text-xs font-medium text-accent-purple">Your Manga Gateway</span>
           </div>
-        </form>
 
-        {/* Quick links */}
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <span className="text-text-muted text-sm flex items-center gap-1">
-            <Sparkles size={14} />
-            Popular:
-          </span>
-          {['One Piece', 'Jujutsu Kaisen', 'Chainsaw Man', 'Solo Leveling'].map((title) => (
-            <button
-              key={title}
-              onClick={() => router.push(`/search?q=${encodeURIComponent(title)}`)}
-              className="px-3 py-1.5 bg-bg-card border border-border-subtle rounded-full text-xs text-text-secondary hover:text-accent-purple hover:border-accent-purple transition-all"
-            >
-              {title}
-            </button>
-          ))}
-        </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
+            Welcome to{' '}
+            <span className="gradient-text">Titli Manga</span>
+          </h1>
 
-        {/* Stats */}
-        <div className="mt-10 flex justify-center gap-8 sm:gap-12">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-accent-purple">
-              <TrendingUp size={16} />
-              <span className="text-lg font-bold">100K+</span>
+          <p className="mt-3 text-text-secondary text-base sm:text-lg max-w-lg mx-auto leading-relaxed">
+            Discover and read thousands of manga titles for free with a beautiful reading experience.
+          </p>
+
+          <form onSubmit={handleSearch} className="mt-8 max-w-xl mx-auto">
+            <div className="flex items-center bg-bg-card border border-border-subtle rounded-xl overflow-hidden focus-within:border-accent-purple/50 focus-within:shadow-[0_0_0_3px_rgba(139,92,246,0.1)] transition-all duration-200">
+              <Search size={18} className="ml-4 text-text-muted flex-shrink-0" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search for manga..."
+                className="flex-1 bg-transparent px-3 py-3.5 text-text-primary placeholder:text-text-muted outline-none text-sm"
+              />
+              <button
+                type="submit"
+                className="px-5 py-3.5 btn-primary rounded-none text-sm"
+              >
+                Search
+              </button>
             </div>
-            <p className="text-text-muted text-xs mt-0.5">Manga Titles</p>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 text-accent-pink">
-              <Sparkles size={16} />
-              <span className="text-lg font-bold">Free</span>
-            </div>
-            <p className="text-text-muted text-xs mt-0.5">Always & Forever</p>
+          </form>
+
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+            <span className="text-text-muted text-xs flex items-center gap-1">
+              <Sparkles size={12} />
+              Popular:
+            </span>
+            {POPULAR_SEARCHES.map((title) => (
+              <button
+                key={title}
+                onClick={() => router.push(`/search?q=${encodeURIComponent(title)}`)}
+                className="px-2.5 py-1 bg-bg-card/80 border border-border-subtle rounded-lg text-xs text-text-secondary hover:text-accent-purple hover:border-accent-purple/40 transition-all"
+              >
+                {title}
+              </button>
+            ))}
           </div>
         </div>
       </div>

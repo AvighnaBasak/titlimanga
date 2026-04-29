@@ -37,7 +37,7 @@ export default function HomePage() {
     <>
       <HeroSection />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-12 pb-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 space-y-14 pb-20">
         <section>
           <SectionHeader
             title="Trending Now"
@@ -50,8 +50,8 @@ export default function HomePage() {
 
         <section>
           <SectionHeader
-            title="Popular This Season"
-            subtitle="Top picks by the community"
+            title="Most Popular"
+            subtitle="All-time community favorites"
           />
           <Suspense fallback={<MangaGridSkeleton count={12} />}>
             <PopularSection />
@@ -61,7 +61,7 @@ export default function HomePage() {
         <section>
           <SectionHeader
             title="Latest Updates"
-            subtitle="Freshly uploaded chapters from MangaDex"
+            subtitle="Freshly uploaded chapters"
           />
           <Suspense fallback={<MangaGridSkeleton count={18} />}>
             <LatestSection />

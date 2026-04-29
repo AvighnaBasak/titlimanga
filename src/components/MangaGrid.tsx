@@ -16,7 +16,7 @@ export function MangaGrid({ manga, priorityCount = 4 }: MangaGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
       {manga.map((m, i) => (
         <MangaCard key={`${m.source}-${m.id}`} manga={m} priority={i < priorityCount} />
       ))}
@@ -26,7 +26,7 @@ export function MangaGrid({ manga, priorityCount = 4 }: MangaGridProps) {
 
 export function MangaGridSkeleton({ count = 12 }: { count?: number }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 sm:gap-4">
       {Array.from({ length: count }).map((_, i) => (
         <MangaCardSkeleton key={i} />
       ))}
